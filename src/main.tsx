@@ -9,7 +9,7 @@ import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <Router>
+    <Router basename="/filehub-frontend">
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/login" element={<Login />} />
