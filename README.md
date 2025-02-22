@@ -27,6 +27,15 @@ npm install gh-pages --save-dev
 npm run dev
 ```
 
+# Difference Between npm run dev, build, and serve
+
+| Command | Purpose |
+|---------|---------|
+| npm run dev | Starts a development server (fast refresh, local testing). |
+| npm run build | Compiles the project for production (creates dist/). |
+| npm run preview | Serves the built project (dist/) like a real deployment. |
+
+
 # Notes:
 
 - There were some Node.js version compatibility warnings (project requires Node.js ^18.0.0 || ^20.0.0 || >=22.0.0)
