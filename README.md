@@ -29,12 +29,11 @@ npm run dev
 
 # Difference Between npm run dev, build, and serve
 
-| Command | Purpose |
-|---------|---------|
-| npm run dev | Starts a development server (fast refresh, local testing). |
-| npm run build | Compiles the project for production (creates dist/). |
-| npm run preview | Serves the built project (dist/) like a real deployment. |
-
+| Command         | Purpose                                                    |
+| --------------- | ---------------------------------------------------------- |
+| npm run dev     | Starts a development server (fast refresh, local testing). |
+| npm run build   | Compiles the project for production (creates dist/).       |
+| npm run preview | Serves the built project (dist/) like a real deployment.   |
 
 # Notes:
 
@@ -105,3 +104,243 @@ export default tseslint.config({
   },
 });
 ```
+
+# Deployment Guide for FastAPI + PostgreSQL + React
+
+## **Step 1: Setup and Deploy Frontend (React + Vite)**
+
+### **1.1 Install Dependencies**
+
+```bash
+npm install
+```
+
+### **1.2 Configure API Base URL in **``
+
+Modify the `base` property:
+
+```ts
+export default defineConfig({
+  base: "/",
+});
+```
+
+### **1.3 Update **``
+
+```env
+VITE_API_URL=https://filehub-backend.onrender.com
+```
+
+### **1.4 Build and Deploy**
+
+```bash
+npm run build
+npm run deploy
+```
+
+---
+
+## **Step 2: Setup Backend (FastAPI)**
+
+### **2.1 Install Dependencies**
+
+```bash
+pip install fastapi uvicorn sqlalchemy asyncpg alembic pydantic
+```
+
+### **2.2 Create **``
+
+```python
+from fastapi import FastAPI
+from routers import auth, blogs
+from database import engine, Base
+
+app = FastAPI()
+
+app.include_router(auth.router)
+app.include_router(blogs.router)
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to FileHub"}
+```
+
+### **2.3 Create **``
+
+```python
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+DATABASE_URL = "postgresql+asyncpg://myuser:mypassword@localhost:5432/mydatabase"
+
+engine = create_async_engine(DATABASE_URL, echo=True)
+SessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+
+Base = declarative_base()
+
+async def get_db():
+    async with SessionLocal() as session:
+        yield session
+```
+
+### **2.4 Start FastAPI Server**
+
+```bash
+uvicorn main:app --reload
+```
+
+---
+
+## **Step 3: Setup PostgreSQL in Docker**
+
+### **3.1 Run PostgreSQL Container**
+
+```bash
+docker run --name postgres -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydatabase -p 5432:5432 -d postgres
+```
+
+### **3.2 Check Running Containers**
+
+```bash
+docker ps
+```
+
+### **3.3 Connect to PostgreSQL**
+
+```bash
+docker exec -it postgres psql -U myuser -d mydatabase
+```
+
+### **3.4 Verify Database Connection**
+
+```sql
+\l  -- List all databases
+\c mydatabase  -- Connect to the database
+\dt  -- Show all tables
+```
+
+---
+
+## **Step 4: Authentication System (OAuth2 + JWT)**
+
+### **4.1 Install Authentication Dependencies**
+
+```bash
+pip install passlib bcrypt python-jose
+```
+
+### **4.2 Create **``** for JWT Token Generation**
+
+```python
+from datetime import datetime, timedelta
+from jose import JWTError, jwt
+
+SECRET_KEY = "your_secret_key"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+```
+
+---
+
+## **Step 5: Database Migrations with Alembic**
+
+### **5.1 Initialize Alembic**
+
+```bash
+alembic init alembic
+```
+
+### **5.2 Edit **``** to Configure Database URL**
+
+```ini
+sqlalchemy.url = postgresql+asyncpg://myuser:mypassword@localhost:5432/mydatabase
+```
+
+### **5.3 Generate Migration File**
+
+```bash
+alembic revision --autogenerate -m "Create users and blogs table"
+```
+
+### **5.4 Apply Migrations**
+
+```bash
+alembic upgrade head
+```
+
+---
+
+## **Step 6: Deployment on Render**
+
+### **6.1 Deploy FastAPI Backend**
+
+- Add **Render service** → Choose **FastAPI**
+- Set **Start Command**:
+  ```bash
+  gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app
+  ```
+- Add **Environment Variables**:
+  ```
+  DATABASE_URL=postgresql+asyncpg://myuser:mypassword@mydb.render.com:5432/mydatabase
+  ```
+
+### **6.2 Deploy PostgreSQL on Render**
+
+- Create a new **Render Database**
+- Copy the database connection string.
+
+---
+
+## **Step 7: Security Best Practices**
+
+### **7.1 Encrypt **``** Before Pushing to Git**
+
+1. **Use **``** file** and add `.gitignore` entry:
+   ```
+   .env
+   ```
+2. **Store secrets securely in Render**:
+   - Go to **Render Dashboard** → Settings → Environment Variables
+   - Add `DATABASE_URL` as a **secret variable**.
+
+---
+
+## **Step 8: Running SQL Commands in PostgreSQL**
+
+### **8.1 Connect to PostgreSQL**
+
+```bash
+docker exec -it postgres psql -U myuser -d mydatabase
+```
+
+### **8.2 Common SQL Commands**
+
+```sql
+\l  -- List all databases
+\c mydatabase  -- Connect to database
+\dt  -- Show all tables
+SELECT * FROM users;  -- Query users table
+```
+
+---
+
+## **Final Notes**
+
+- **Alembic versioning should be pushed to Git**, so that migrations are version-controlled.
+- **For local database connection to Render**, update `.env` with:
+  ```env
+  DATABASE_URL=postgresql+asyncpg://myuser:mypassword@mydb.render.com:5432/mydatabase
+  ```
+- **Run database migrations after deployment**:
+  ```bash
+  alembic upgrade head
+  ```
+
+This guide contains **all execution steps, commands, and code snippets** to ensure smooth deployment and troubleshooting. 🚀
