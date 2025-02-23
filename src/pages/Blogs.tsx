@@ -1,8 +1,17 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+// ✅ Load API URL from environment variables
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+interface Blog {
+  id: number;
+  title: string;
+  content: string;
+}
+
 const Blogs = () => {
-  const [blogs, setBlogs] = useState([]);
+  const [blogs, setBlogs] = useState<Blog[]>([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
@@ -12,7 +21,7 @@ const Blogs = () => {
 
   const fetchBlogs = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/blogs/");
+      const res = await axios.get(`${API_BASE_URL}/blogs/`);
       setBlogs(res.data);
     } catch (error) {
       console.error("Error fetching blogs", error);
@@ -20,8 +29,12 @@ const Blogs = () => {
   };
 
   const addBlog = async () => {
-    await axios.post("http://127.0.0.1:8000/blogs/", { title, content });
-    fetchBlogs();
+    try {
+      await axios.post(`${API_BASE_URL}/blogs/`, { title, content });
+      fetchBlogs();
+    } catch (error) {
+      console.error("Error adding blog", error);
+    }
   };
 
   return (
@@ -30,18 +43,19 @@ const Blogs = () => {
       <input
         type="text"
         placeholder="Title"
+        value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
       <textarea
         placeholder="Content"
+        value={content}
         onChange={(e) => setContent(e.target.value)}
       />
       <button onClick={addBlog}>Add Blog</button>
       <ul>
         {blogs.map((blog) => (
-          <li key={(blog as { id: number }).id}>
-            {(blog as { title: string }).title}:{" "}
-            {(blog as { content: string }).content}
+          <li key={blog.id}>
+            <strong>{blog.title}</strong>: {blog.content}
           </li>
         ))}
       </ul>

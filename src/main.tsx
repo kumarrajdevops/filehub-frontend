@@ -7,6 +7,8 @@ import Blogs from "./pages/Blogs";
 import Uploads from "./pages/Uploads";
 import "./index.css";
 
+// console.log(import.meta.env.VITE_API_BASE_URL);
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Router basename="/filehub-frontend">
