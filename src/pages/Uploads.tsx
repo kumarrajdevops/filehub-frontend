@@ -97,7 +97,7 @@ const UploadFiles = () => {
             <ul className="mt-4">
               {files.map((file) => (
                 <li key={file.id} className="flex justify-between items-center p-2 border-b">
-                  <a href={file.name} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                  <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
                     {file.name}
                   </a>
                   <button
