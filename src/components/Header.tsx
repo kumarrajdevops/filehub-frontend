@@ -169,6 +169,21 @@ export default function Header() {
                 </Link>
               </li>
               <li>
+                <Link
+                  to="/uploadfiles"
+                  className={`block py-2 pr-4 pl-3 ${
+                    location.pathname === "/uploadfiles"
+                      ? "text-white bg-primary-700 lg:bg-transparent lg:text-primary-700 dark:text-red-500"
+                      : "text-gray-700 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 lg:hover:text-primary-700"
+                  } lg:p-0 dark:text-gray-400 lg:dark:hover:text-white`}
+                  aria-current={
+                    location.pathname === "/uploadfiles" ? "page" : undefined
+                  }
+                >
+                  UploadFiles
+                </Link>
+              </li>
+              <li>
                 <button
                   onClick={toggleDarkMode}
                   type="button"

@@ -12,6 +12,7 @@ import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Blogs from "./pages/Blogs";
+import UploadFiles from "./pages/Uploads";
 import { isAuthenticated } from "./services/authService";
 
 function PrivateRoute({ children }: { children: React.ReactElement }) {
@@ -36,6 +37,7 @@ export default function App() {
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/blogs" element={<Blogs />} />
+                  <Route path="/uploadfiles" element={<UploadFiles />} />
                 </Routes>
               </>
             </PrivateRoute>
