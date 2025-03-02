@@ -3,7 +3,7 @@ import api from "./api";
 export const fetchFiles = async () => {
   try {
     const res = await api.get("/files"); // Removed trailing "/"
-    console.log(res.data);
+    // console.log(res.data);
     return res.data.files; // Ensure we return only the list of files
   } catch {
     throw new Error("Error fetching files.");

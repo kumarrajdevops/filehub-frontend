@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { isAuthenticated } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import { uploadFile, fetchFiles, deleteFile } from "../services/fileService";
+
 
 interface FileItem {
   id: number;
@@ -14,7 +15,8 @@ const UploadFiles = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  console.log(files)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -23,6 +25,16 @@ const UploadFiles = () => {
       loadFiles();
     }
   }, [navigate]);
+
+  useEffect(() => {
+    let timer: number;
+    if (error) {
+      timer = setTimeout(() => setError(null), 5000); //5sec error message
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [error]);
 
   const loadFiles = async () => {
     try {
@@ -44,6 +56,9 @@ const UploadFiles = () => {
       await uploadFile(selectedFile);
       setSelectedFile(null);
       loadFiles();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An error occurred while uploading the file"
@@ -69,7 +84,7 @@ const UploadFiles = () => {
           <h2 className="mb-4 text-3xl lg:text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white">
             Upload Files
           </h2>
-          {error && <p className="text-red-500">{error}</p>}
+          
           <p className="font-light text-gray-500 sm:text-xl dark:text-gray-400">
             Manage your files with ease. Upload and delete files securely.
           </p>
@@ -82,7 +97,7 @@ const UploadFiles = () => {
             <ul className="mt-4">
               {files.map((file) => (
                 <li key={file.id} className="flex justify-between items-center p-2 border-b">
-                  <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                  <a href={file.name} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
                     {file.name}
                   </a>
                   <button
@@ -103,6 +118,7 @@ const UploadFiles = () => {
           <h2 className="text-2xl font-bold mb-4">Upload a File</h2>
           <input
             type="file"
+            ref={fileInputRef}
             onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
             className="w-full p-2 border border-gray-300 rounded mb-2"
           />
@@ -112,6 +128,7 @@ const UploadFiles = () => {
           >
             Upload
           </button>
+          {error && <p className="text-red-500">{error}</p>}
         </div>
       </div>
     </section>
